@@ -1,4 +1,4 @@
-package main
+package crawlio
 
 import (
     "fmt"
@@ -18,7 +18,7 @@ type CrawlingContext struct{
         crawledurls []string
 }
 
-func main() {	
+func Crawl() string {	
     
     //improve test 1 arg
 
@@ -42,6 +42,8 @@ func main() {
 
     //finally wait for scheduler
     crawlingcontext.scheduler.Wait()
+
+    return "done"
 }
 	
 //Improve interface another search (by regex or whatever)
