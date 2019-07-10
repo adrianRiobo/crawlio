@@ -1,54 +1,41 @@
 package crawlio
 
 import (
-    "fmt"
     //"os"
-    "sync"
+    //"sync"
     "strings"
     "github.com/bobesa/go-domain-util/domainutil"
     "github.com/gocolly/colly"
     "github.com/thoas/go-funk"
 )
 
-type CrawlingContext struct{
-	initialdomain string
-	urlschannel chan string
-        crawlers sync.WaitGroup
-        scheduler sync.WaitGroup
-        crawledurls []string
-}
-
 func Crawl(url string) string {	
     
     //improve test 1 arg
     //from main os.Args[1]
+    crawlioctx := NewCrawlioContext(url)
 
-    crawlingcontext := CrawlingContext{
-      initialdomain: url,
-      urlschannel: make(chan string), 
-    }
-    
     //Add one routine wait for initial crawler 
-    crawlingcontext.crawlers.Add(1)
+    crawlioctx.crawlers.Add(1)
     //Add one routine wait for scheduler
-    crawlingcontext.scheduler.Add(1)
+    crawlioctx.scheduler.Add(1)
     
-    go UrlCrawlingDecisor(&crawlingcontext)
-    go Crawler(&crawlingcontext, crawlingcontext.initialdomain)
+    go UrlCrawlingDecisor(crawlioctx)
+    go Crawler(crawlioctx, crawlioctx.initialdomain)
    
     //when there is nothing else for crawl
     //close channel 
-    crawlingcontext.crawlers.Wait()
-    close(crawlingcontext.urlschannel)
+    crawlioctx.crawlers.Wait()
+    close(crawlioctx.urlschannel)
 
     //finally wait for scheduler
-    crawlingcontext.scheduler.Wait()
+    crawlioctx.scheduler.Wait()
 
     return "done"
 }
 	
 //Improve interface another search (by regex or whatever)
-func Crawler(context *CrawlingContext, crawledurl string) {
+func Crawler(context *CrawlioContext, crawledurl string) {
 
   //Inform finish
   defer context.crawlers.Done()
@@ -71,7 +58,7 @@ func Crawler(context *CrawlingContext, crawledurl string) {
 }
 
 //sync-async pattern governance of crawling
-func UrlCrawlingDecisor(context *CrawlingContext) {
+func UrlCrawlingDecisor(context *CrawlioContext) {
 
     //Done when finish
     defer context.scheduler.Done()
@@ -86,21 +73,15 @@ func UrlCrawlingDecisor(context *CrawlingContext) {
            ! domainutil.HasSubdomain(url) &&
            ! strings.ContainsRune(url, 35) &&
            ! strings.Contains(url, "..") {
-           context.crawledurls = append(context.crawledurls, url)
-           printSlice(context.crawledurls)
-           fmt.Println(url)
+           context.AddScrapedUrl(url)
+           context.PrintScrappedUrlsStats()
            context.crawlers.Add(1)
            go Crawler(context, url)
         } 
       } else {
-          fmt.Println("done")
           keepRunning = false
       }
     }
 }
 
-func printSlice(s []string) {
-  //fmt.Printf("len=%d cap=%d %v\n", len(s), cap(s), s)
-  fmt.Printf("len=%d cap=%d \n", len(s), cap(s)) 
-}
 
