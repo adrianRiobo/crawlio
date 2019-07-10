@@ -2,7 +2,7 @@ package crawlio
 
 import (
     "fmt"
-    "os"
+    //"os"
     "sync"
     "strings"
     "github.com/bobesa/go-domain-util/domainutil"
@@ -18,12 +18,13 @@ type CrawlingContext struct{
         crawledurls []string
 }
 
-func Crawl() string {	
+func Crawl(url string) string {	
     
     //improve test 1 arg
+    //from main os.Args[1]
 
     crawlingcontext := CrawlingContext{
-      initialdomain: os.Args[1],
+      initialdomain: url,
       urlschannel: make(chan string), 
     }
     
