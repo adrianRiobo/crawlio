@@ -2,9 +2,15 @@ package crawlio
 
 import (
     "testing"
-    //"os"
+    "github.com/stretchr/testify/assert"
 )
 
+func TestCrawl(t *testing.T) {
+    result := Crawl("http://test.test")
+    assert.Equal(t, result, "done", "Should be done")
+}
+    
+/*
 func TestCrawl(t *testing.T) {
     want := "done"
     //os.Args = []string{"crawlio","https://test.test"}
@@ -12,3 +18,4 @@ func TestCrawl(t *testing.T) {
         t.Errorf("Crawl() = %q, want %q", got, want)
     }
 }
+*/

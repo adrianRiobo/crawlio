@@ -7,9 +7,7 @@ import (
 
 type CrawlioContext struct{
         initialdomain string
-        urlschannel chan string
-        crawlers *sync.WaitGroup
-        scheduler *sync.WaitGroup
+        //Change for sitemap
         crawledurls []string
         lock *sync.RWMutex
 }
@@ -18,9 +16,6 @@ type CrawlioContext struct{
 func NewCrawlioContext(initialUrl string) *CrawlioContext {
 	return &CrawlioContext{
                 initialdomain: initialUrl,
-                urlschannel: make(chan string),
-                crawlers: &sync.WaitGroup{},
-                scheduler: &sync.WaitGroup{},
                 crawledurls: make([]string, 1),
                 lock: &sync.RWMutex{},
 	}
@@ -41,5 +36,4 @@ func (context *CrawlioContext) PrintScrappedUrlsStats() {
 	defer context.lock.RUnlock()
         fmt.Printf("len=%d cap=%d \n", len(context.crawledurls), cap(context.crawledurls))
 }
-
 

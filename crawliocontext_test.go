@@ -1,13 +1,28 @@
 package crawlio
 
 import (
-    "testing"
+  "testing"
+  "github.com/stretchr/testify/assert"
+  "github.com/stretchr/testify/suite"   
 )
 
-//test initialization
-func TestNewCrawlioContext(t *testing.T) {
-	crawlioctx := NewCrawlioContext("https://test.test")
-        if crawlioctx.initialdomain != "https://test.test" {
-           t.Fatal("value not equal")
-        }
+type CrawlioContextTestSuite struct {
+    suite.Suite
+    context *CrawlioContext
 }
+
+//Setup content before each test
+func (suite *CrawlioContextTestSuite) SetupTest() {
+    suite.context = NewCrawlioContext("https://test.test")
+}
+
+// Tests
+func (suite *CrawlioContextTestSuite) TestCrawlioContextTest() {
+    assert.Equal(suite.T(), "https://test.test", suite.context.initialdomain)
+}
+
+// Test suit runner
+func TestExampleTestSuite(t *testing.T) {
+    suite.Run(t, new(CrawlioContextTestSuite))
+}
+
