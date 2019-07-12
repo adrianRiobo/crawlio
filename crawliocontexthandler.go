@@ -87,11 +87,7 @@ func UrlCrawlingDecisor(context *CrawlioContext, urlschannel chan string, crawle
     for keepRunning {
       url, ok := <-urlschannel
       if ok {
-        if domainutil.Domain(url) == domainutil.Domain(context.initialdomain) &&
-           ! funk.Contains(context.crawledurls, url) &&
-           ! domainutil.HasSubdomain(url) &&
-           ! strings.ContainsRune(url, 35) &&
-           ! strings.Contains(url, "..") {
+        if IsCrawlable(context, url) {
            context.AddScrapedUrl(url)
            context.PrintScrappedUrlsStats()
            crawlers.Add(1)
@@ -103,3 +99,11 @@ func UrlCrawlingDecisor(context *CrawlioContext, urlschannel chan string, crawle
     }
 }
 
+//condition for crawlable url
+func IsCrawlable(context *CrawlioContext, url string) bool {
+  return domainutil.Domain(url) == domainutil.Domain(context.initialdomain) &&
+           ! funk.Contains(context.crawledurls, url) &&
+           ! domainutil.HasSubdomain(url) &&
+           ! strings.ContainsRune(url, 35) &&
+           ! strings.Contains(url, "..")
+}
