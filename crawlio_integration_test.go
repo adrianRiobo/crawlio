@@ -1,5 +1,7 @@
 // +build integration
 
+// from https://peter.bourgon.org/go-in-production/#testing-and-validation
+// Use tags + flags
 package crawlio
 
 import (
