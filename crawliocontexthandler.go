@@ -19,16 +19,18 @@ type CrawlioContextHandler interface {
 //Default impl
 type DefaultCrawlioContextHandler struct {
   context *CrawlioContext
+  collector *colly.Collector
   urlschannel chan string
   crawlers *sync.WaitGroup
   scheduler *sync.WaitGroup
 }
 
-func (cch *DefaultCrawlioContextHandler) Init(context *CrawlioContext) error {
-  if context == nil {
+func (cch *DefaultCrawlioContextHandler) Init(context *CrawlioContext, collector *colly.Collector) error {
+  if context == nil || collector == nil {
    return errors.New("No context available")
   } 
   cch.context = context
+  cch.collector = collector
   cch.urlschannel= make(chan string)
   cch.crawlers= &sync.WaitGroup{}
   cch.scheduler= &sync.WaitGroup{}
@@ -42,8 +44,8 @@ func (cch *DefaultCrawlioContextHandler) Crawl() {
     //Add one routine wait for scheduler
     cch.scheduler.Add(1)
 
-    go UrlCrawlingDecisor(cch.context, cch.urlschannel, cch.crawlers, cch.scheduler)
-    go Crawler(cch.context, cch.context.initialdomain, cch.urlschannel, cch.crawlers)
+    go UrlCrawlingDecisor(cch.context, cch.urlschannel, cch.crawlers, cch.scheduler, cch.collector)
+    go Crawler(cch.context, cch.context.initialdomain, cch.urlschannel, cch.crawlers, cch.collector)
 
     //when there is nothing else for crawl
     //close channel
@@ -55,14 +57,12 @@ func (cch *DefaultCrawlioContextHandler) Crawl() {
 }
 
 //Improve interface another search (by regex or whatever)
-func Crawler(context *CrawlioContext, crawledurl string, urlschannel chan string, crawlers *sync.WaitGroup) {
+func Crawler(context *CrawlioContext, crawledurl string, urlschannel chan string, crawlers *sync.WaitGroup, collector *colly.Collector) {
 
   //Inform finish
   defer crawlers.Done()
 
-  c := colly.NewCollector()
-
-  c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+  collector.OnHTML("a[href]", func(e *colly.HTMLElement) {
     href := e.Attr("href")
     if domainutil.Domain(href) == "" && href != "/" {
       urlschannel <- (crawledurl + href)
@@ -71,14 +71,14 @@ func Crawler(context *CrawlioContext, crawledurl string, urlschannel chan string
     }
   })
 
-  c.Visit(crawledurl)
+  collector.Visit(crawledurl)
 
   //Create sitemap
 
 }
 
 //sync-async pattern governance of crawling
-func UrlCrawlingDecisor(context *CrawlioContext, urlschannel chan string, crawlers *sync.WaitGroup, scheduler *sync.WaitGroup) {
+func UrlCrawlingDecisor(context *CrawlioContext, urlschannel chan string, crawlers *sync.WaitGroup, scheduler *sync.WaitGroup, collector *colly.Collector) {
 
     //Done when finish
     defer scheduler.Done()
@@ -91,7 +91,7 @@ func UrlCrawlingDecisor(context *CrawlioContext, urlschannel chan string, crawle
            context.AddScrapedUrl(url)
            context.PrintScrappedUrlsStats()
            crawlers.Add(1)
-           go Crawler(context, url, urlschannel, crawlers)
+           go Crawler(context, url, urlschannel, crawlers, collector)
         }
       } else {
           keepRunning = false
