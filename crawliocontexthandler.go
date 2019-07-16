@@ -70,6 +70,7 @@ func Crawler(context *CrawlioContext, crawledurl string, urlschannel chan string
       urlschannel <- href
     }
   })
+  
 
   collector.Visit(crawledurl)
 

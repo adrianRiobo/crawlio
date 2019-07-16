@@ -2,7 +2,7 @@ package main
 
 import (
     "os"
-    "github.com/adrianriobo/crawlio"
+    "github.com/adrianRiobo/crawlio"
 )
 
 func main(){

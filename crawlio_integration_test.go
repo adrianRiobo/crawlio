@@ -10,6 +10,8 @@ import (
 )
 
 func TestIntegrationCrawl(t *testing.T) {
-    result := Crawl("https://httpbin.org/html")
+    //Improve getting url and number of scrapped urls from tags
+    result := Crawl("https://httpbin.org/links/4/0")
+    //Improve getting context scrapped urls and check len is 4
     assert.Equal(t, result, "done", "Should be done")
 }
